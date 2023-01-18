@@ -24,7 +24,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/res/includes/glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/res/includes/glad)
 
 
-add_library(Display ${DISPLAY})
+add_library(Display ${DISPLAY} Game/Bezier1D.h)
 add_library(Engine ${ENGINE})
 
 

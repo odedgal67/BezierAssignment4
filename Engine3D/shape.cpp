@@ -1,7 +1,12 @@
 #include "glad/include/glad/glad.h"
 #include "shape.h"
 
-
+Shape::Shape(){
+    isCopy = true;
+    toRender = true;
+    texID = -1;
+    shaderID = 1;
+}
 Shape::Shape(const Shape& shape,unsigned int mode)
 {
 	

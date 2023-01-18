@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "glad/include/glad/glad.h"
+#include "../Game/Bezier1D.h"
 #include <iostream>
 
 	static void printMat(const glm::mat4 mat)
@@ -88,7 +89,7 @@
 		if(toClear)
 		{
 			if(shaderIndx>0)
-				Clear(1,0,1,1);
+				Clear(1,1,1,1);
 			else
 				Clear(0,0,0,0);
 		}
@@ -191,18 +192,117 @@
 	{
 		if(pickedShape == -1)
 		{
-			if(button == 1 )
-			{				
-
-				MyTranslate(glm::vec3(-xrel/20.0f,0,0),0);
-				MyTranslate(glm::vec3(0,yrel/20.0f,0),0);
-				WhenTranslate();
-			}
-			else
+			if(button == 1 ) //Right mouse click - translation of selected point
 			{
-				MyRotate(xrel/2.0f,glm::vec3(1,0,0),0);
-				MyRotate(yrel/2.0f,glm::vec3(0,0,1),0);
-				WhenRotate();
+                auto bezier = dynamic_cast<Bezier1D*>(shapes[shapes.size()-1]);
+                Shape* selectedControlPoint = shapes[selectedPointIndex+1];
+                glm::vec4 selectedControlPointPosition = selectedControlPoint->trans[3];
+                Shape* rightPoint=NULL;
+                Shape* leftPoint=NULL;
+                glm::vec4 delta = glm::vec4(-xrel/12.0f, yrel/12.0f,0.0f,0.0f);
+                if(selectedPointIndex%3==0) //Not a control point
+                {
+                    if(selectedPointIndex==0)
+                    {
+                        rightPoint = shapes[selectedPointIndex+2];
+                    }
+                    else if(selectedPointIndex == shapes.size()-3)
+                    {
+                        leftPoint = shapes[selectedPointIndex];
+                    }
+                    else
+                    {
+                        rightPoint = shapes[selectedPointIndex+2];
+                        leftPoint = shapes[selectedPointIndex];
+                    }
+                    if(rightPoint != NULL)
+                    {
+                        rightPoint->MyTranslate(glm::vec3(delta[0], delta[1], delta[2]), 0);
+                        bezier->UpdatePoint(rightPoint, selectedPointIndex+1);
+                    }
+                    if(leftPoint != NULL)
+                    {
+                        leftPoint->MyTranslate(glm::vec3(delta[0], delta[1], delta[2]), 0);
+                        bezier->UpdatePoint(leftPoint, selectedPointIndex-1);
+                    }
+                }
+
+                selectedControlPoint->MyTranslate(glm::vec3(delta[0], delta[1], delta[2]), 0);
+
+                //Update Bezier according to new shapes values
+                bezier->UpdatePoint(selectedControlPoint, selectedPointIndex);
+                shapes[shapes.size()-1]->SetBezier1DMesh(bezier->GetLine());
+			}
+			else //Left mouse click - rotate control point selected
+			{
+                if(selectedPointIndex%3==0)
+                {
+                    return;
+                }
+                glm::vec4 selectedControlPoint = shapes[selectedPointIndex+1]->trans[3];
+                glm::vec4 pointToRotateAround;
+                Shape* pointForContinuation;
+                glm::vec4 pointForContinuationPosition;
+                int continuationPointIndex;
+                if(selectedPointIndex % 3 == 1) //Get previous point
+                {
+                    pointToRotateAround = shapes[selectedPointIndex]->trans[3];
+                    if(selectedPointIndex > 1)
+                    {
+                        continuationPointIndex = selectedPointIndex-1;
+                        pointForContinuation = shapes[continuationPointIndex];
+                        pointForContinuationPosition = pointForContinuation->trans[3];
+                    }
+                }
+                else if(selectedPointIndex % 3 == 2) //Get next point
+                {
+                    pointToRotateAround = shapes[selectedPointIndex+2]->trans[3];
+                    if(selectedPointIndex < shapes.size()-4)
+                    {
+                        continuationPointIndex = selectedPointIndex+3;
+                        pointForContinuation = shapes[continuationPointIndex];
+                        pointForContinuationPosition = pointForContinuation->trans[3];
+                    }
+                }
+                else
+                {
+                    std::cerr << "Shouldn't Happen!!!!!!!!!!!!!!!!!!!!!!";
+                }
+
+                //Rotation of point
+                shapes[selectedPointIndex+1]->MyTranslate(glm::vec3(pointToRotateAround[0]-selectedControlPoint[0], pointToRotateAround[1]-selectedControlPoint[1], pointToRotateAround[2]- selectedControlPoint[2]), 0);
+                glm::vec4 rotation = glm::inverse(shapes[selectedPointIndex+1]->rot) * glm::vec4(0, 0, 1, 0);
+                glm::vec3 rotationTrimmed = glm::vec3(rotation[0], rotation[1], rotation[2]);
+                shapes[selectedPointIndex+1]->MyRotate(xrel / 2.0f, rotationTrimmed, 0);
+                shapes[selectedPointIndex+1]->MyRotate(yrel / 2.0f, rotationTrimmed, 0);
+                glm::vec4 ret = shapes[selectedPointIndex+1]->rot * (glm::vec4(selectedControlPoint[0] -pointToRotateAround[0], selectedControlPoint[1] -pointToRotateAround[1], selectedControlPoint[2] -pointToRotateAround[2], 0));
+                shapes[selectedPointIndex+1]->MyTranslate(glm::vec3(ret[0], ret[1], ret[2]),0);
+
+                shapes[selectedPointIndex+1]->MyRotate(-xrel/2.0f, glm::vec3(rotation[0], rotation[1], rotation[2]),0);
+                shapes[selectedPointIndex+1]->MyRotate(-yrel/2.0f, glm::vec3(rotation[0], rotation[1], rotation[2]),0);
+
+                auto bezier = dynamic_cast<Bezier1D*>(shapes[shapes.size()-1]);
+
+                if(isContinuity && pointForContinuation!=NULL)
+                {
+                    pointForContinuation->MyTranslate(glm::vec3(pointToRotateAround[0]-pointForContinuationPosition[0], pointToRotateAround[1]-pointForContinuationPosition[1], pointToRotateAround[2]- pointForContinuationPosition[2]), 0);
+                    glm::vec4 rotation = glm::inverse(pointForContinuation->rot) * glm::vec4(0, 0, 1, 0);
+                    glm::vec3 rotationTrimmed = glm::vec3(rotation[0], rotation[1], rotation[2]);
+                    pointForContinuation->MyRotate(xrel / 2.0f, rotationTrimmed, 0);
+                    pointForContinuation->MyRotate(yrel / 2.0f, rotationTrimmed, 0);
+                    glm::vec4 ret = pointForContinuation->rot * (glm::vec4(pointForContinuationPosition[0] -pointToRotateAround[0], pointForContinuationPosition[1] -pointToRotateAround[1], pointForContinuationPosition[2] -pointToRotateAround[2], 0));
+                    pointForContinuation->MyTranslate(glm::vec3(ret[0], ret[1], ret[2]),0);
+
+                    pointForContinuation->MyRotate(-xrel/2.0f, glm::vec3(rotation[0], rotation[1], rotation[2]),0);
+                    pointForContinuation->MyRotate(-yrel/2.0f, glm::vec3(rotation[0], rotation[1], rotation[2]),0);
+
+                    bezier->UpdatePoint(pointForContinuation, continuationPointIndex);
+                }
+
+                //Update Bezier according to new shapes values
+                bezier->UpdatePoint(shapes[selectedPointIndex+1], selectedPointIndex);
+                shapes[shapes.size()-1]->SetBezier1DMesh(bezier->GetLine());
+
 			}
 		}
 	}
@@ -264,6 +364,13 @@
 			delete tex;
 		}
 
+}
+
+void Scene::TranslateShape(int shape_number, glm::vec3 delta) {
+    int temp = pickedShape;
+    pickedShape = shape_number;
+    MyTranslate(delta,0);
+    pickedShape = temp;
 }
 
 

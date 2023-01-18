@@ -17,8 +17,7 @@
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	{
 		Game *scn = (Game*)glfwGetWindowUserPointer(window);
-		scn->MyTranslate(glm::vec3(0,0,xoffset),0);
-		
+        scn->MoveCamera(0,2,(-4)*yoffset);
 	}
 	
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -47,9 +46,51 @@
 					//cout<< "down: "<<endl;
 					scn->MoveCamera(0,scn->zTranslate,-0.4f);
 					break;
+                case GLFW_KEY_2:
+                    scn->Init(2, false);
+                    break;
+                case GLFW_KEY_3:
+                    scn->Init(3, false);
+                    break;
+                case GLFW_KEY_4:
+                    scn->Init(4, false);
+                    break;
+                case GLFW_KEY_5:
+                    scn->Init(5, false);
+                    break;
+                case GLFW_KEY_6:
+                    scn->Init(6, false);
+                    break;
+                case GLFW_KEY_R:
+                    scn->MoveCamera(0,0,-5);
+                    break;
+                case GLFW_KEY_L:
+                    scn->MoveCamera(0,0,5);
+                    break;
+                case GLFW_KEY_U:
+                    scn->MoveCamera(0,1,-5);
+                    break;
+                case GLFW_KEY_D:
+                    scn->MoveCamera(0,1,5);
+                    break;
+                case GLFW_KEY_B:
+                    scn->MoveCamera(0,2,5);
+                    break;
+                case GLFW_KEY_F:
+                    scn->MoveCamera(0,2,-5);
+                    break;
+                case GLFW_KEY_RIGHT:
+                    scn->MoveSelectedPointRight();
+                    break;
+                case GLFW_KEY_LEFT:
+                    scn->MoveSelectedPointLeft();
+                    break;
+                case GLFW_KEY_C:
+                    scn->isContinuity = !scn->isContinuity;
+                    break;
 
-			default:
-				break;
+                default:
+				    break;
 			}
 		}
 	}

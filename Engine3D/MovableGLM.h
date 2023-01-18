@@ -11,7 +11,7 @@ public:
 	void MyRotate(float angle, const glm::vec3 &vec, int mode);
 	void MyScale(glm::vec3 scale);
 	void ZeroTrans();
-private:
+public:
 	glm::mat4 trans;
 	glm::mat4 rot;
 	glm::mat4 scl;

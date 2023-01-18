@@ -6,6 +6,7 @@
 #include <vector>
 
 
+
 class Scene : public MovableGLM
 {
 
@@ -61,9 +62,14 @@ public:
 	bool inline IsActive() const { return isActive;} 
 	
 	inline void SetShapeTex(int shpIndx,int texIndx){shapes[shpIndx]->SetTexture(texIndx);} 
-	inline void SetShapeShader(int shpIndx,int shdrIndx){shapes[shpIndx]->SetShader(shdrIndx);} 
-	
-private:	
+	inline void SetShapeShader(int shpIndx,int shdrIndx){shapes[shpIndx]->SetShader(shdrIndx);}
+
+    void TranslateShape(int shape_number, glm::vec3 delta);
+    int selectedPointIndex;
+    bool isContinuity = false;
+
+
+private:
 	
 	std::vector<Camera*> cameras; 
 
@@ -72,12 +78,12 @@ private:
 	int cameraIndx;
 	void Clear(float r, float g, float b, float a);
 
-protected:
+public:
 	std::vector<Shape*> shapes;
 	std::vector<Shader*> shaders;
 	std::vector<int> chainParents;
 	std::vector<Texture*> textures;
-	
+
 	int pickedShape;
 	
 	bool isActive;

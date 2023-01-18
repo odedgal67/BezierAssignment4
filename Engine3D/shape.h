@@ -10,7 +10,7 @@ class Shape : public MovableGLM
 {
 private:
 
-	MeshConstructor *mesh;
+
 	int texID;
 	int shaderID;
 	bool isCopy;
@@ -18,7 +18,8 @@ private:
 	bool toRender;
 
 public:
-
+    MeshConstructor *mesh;
+    Shape();
 	Shape(const Shape& shape,unsigned int mode);
 
 	Shape(const std::string& fileName,unsigned int mode);
@@ -43,6 +44,11 @@ public:
 
 	inline int GetTexture(){return texID;}
 
+    inline void setMode(int mode) {this->mode = mode;}
+
+    inline void SetBezier1DMesh(const IndexedModel bezier_1D_line) { this->mesh = new MeshConstructor(bezier_1D_line, false); }
+
 	virtual ~Shape(void);
+
 };
 
